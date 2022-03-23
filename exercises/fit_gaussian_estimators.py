@@ -3,13 +3,60 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
 
+import scipy.stats as sp
+
 pio.templates.default = "simple_white"
 
+
+def test_1():
+    # Uni
+    mu = 10
+    var = 1
+    X = np.random.normal(mu, var, 1000)
+    u = UnivariateGaussian()
+    u.fit(X)
+    print(u.log_likelihood(mu, var, X))
+    print(np.sum(sp.norm.logpdf(X, mu, var)))
+def test_2():
+    # Multi
+    m = MultivariateGaussian()
+    mu = np.array([0, 0, 4, 0])
+    sigma = np.array([[1, 0.2, 0, 0.5],
+                      [0.2, 2, 0, 0],
+                      [0, 0, 1, 0],
+                      [0.5, 0, 0, 1]])
+    X = np.random.multivariate_normal(mu, sigma, 10)
+    m.fit(X)
+    print(m.log_likelihood(m.mu_, m.cov_, X))
+    print(np.sum(sp.multivariate_normal.logpdf(X, m.mu_, m.cov_)))
+def test_3():
+    # PDF Multi
+    m = MultivariateGaussian()
+    mu = np.array([0, 0, 4, 0])
+    sigma = np.array([[1, 0.2, 0, 0.5],
+                      [0.2, 2, 0, 0],
+                      [0, 0, 1, 0],
+                      [0.5, 0, 0, 1]])
+    X = np.random.multivariate_normal(mu, sigma, 1000)
+
+    print(m.log_likelihood(np.array([0, 0, 4, 0]), sigma, X))
+    print(np.sum(sp.multivariate_normal.logpdf(X, np.array([0, 0, 4, 0]), sigma)))
+def test_4():
+    m = MultivariateGaussian()
+    mu = np.array([0, 0, 4, 0])
+    sigma = np.array([[1, 0.2, 0, 0.5],
+                      [0.2, 2, 0, 0],
+                      [0, 0, 1, 0],
+                      [0.5, 0, 0, 1]])
+    X = np.random.multivariate_normal(mu, sigma, 1000)
+    print(sigma*mu)
 
 def test_univariate_gaussian():
     # Question 1 - Draw samples and print fitted model
     mu = 10
-    X = np.random.normal(10, 1, 1000)
+    sigma = 1
+    m = 1000
+    X = np.random.normal(mu, sigma, m)
     u = UnivariateGaussian()
     u.fit(X)
     print(u.mu_, u.var_)
@@ -29,43 +76,49 @@ def test_univariate_gaussian():
                          height=300)).show()
 
     # Question 3 - Plotting Empirical PDF of fitted model
-    u.pdf(X)
-    x_axis = np.linspace(7, 13, 100)
-    empiricalPDF = u.pdf(x_axis)
-
+    empiricalPDF = u.pdf(np.sort(X))
     go.Figure([
-        go.Scatter(x=x_axis, y=empiricalPDF, mode='lines',
-                   line=dict(width=4),
+        go.Scatter(x=np.sort(X), y=empiricalPDF, mode="lines", line=dict(width=4),
                    name=r'$N(\mu, \frac{\sigma^2}{m1})$')],
         layout=go.Layout(barmode='overlay',
                          title=r"$\text{Empirical PDF}$",
                          xaxis_title="r$Value$",
-                         yaxis_title="density",
+                         yaxis_title="r$Density$",
                          height=300)).show()
 
 
 def test_multivariate_gaussian():
     # Question 4 - Draw samples and print fitted model
+    m = MultivariateGaussian()
     mu = np.array([0, 0, 4, 0])
     sigma = np.array([[1, 0.2, 0, 0.5],
                       [0.2, 2, 0, 0],
                       [0, 0, 1, 0],
                       [0.5, 0, 0, 1]])
     X = np.random.multivariate_normal(mu, sigma, 1000)
-    m = MultivariateGaussian()
     m.fit(X)
     print(m.mu_, "\n", m.cov_)
     # Question 5 - Likelihood evaluation
     f1 = np.linspace(-10, 10, 200)
     f3 = np.linspace(-10, 10, 200)
-    mu = np.array([f1, 0, f3, 0])
-
+    d = []
+    for i in range(200):
+        d.append([m.log_likelihood(np.array([f1[i], 0, f3[j], 0]), sigma, X) for j in range(200)])
+    go.Figure(data=go.Heatmap(x=f3, y=f1, z=d, name="r$Log-Likelihood$"),
+              layout=go.Layout(title="r$Heatmap - LogLikelihood$", height=800
+                               , xaxis_title="r$F3 - Values$", yaxis_title="r$F1 - Values$")).show()
 
     # Question 6 - Maximum likelihood
+    max_f1, max_f3 = np.unravel_index(np.argmax(d), np.array(d).shape)
+    print(f1[max_f1], f3[max_f3])
 
 
 
 if __name__ == '__main__':
     np.random.seed(0)
+    test_1()
+    test_2()
+    # test_3()
+    # test_4()
     # test_univariate_gaussian()
-    test_multivariate_gaussian()
+    # test_multivariate_gaussian()
