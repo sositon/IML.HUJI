@@ -3,72 +3,8 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
 
-import scipy.stats as sp
-
 pio.templates.default = "simple_white"
 
-
-def test_1():
-    # Uni
-    mu = 10
-    var = 1
-    X = np.random.normal(mu, var, 1000)
-    u = UnivariateGaussian()
-    u.fit(X)
-    print(u.log_likelihood(mu, var, X))
-    print(np.sum(sp.norm.logpdf(X, mu, var)))
-def test_2():
-    # Multi
-    m = MultivariateGaussian()
-    mu = np.array([0, 0, 4, 0])
-    sigma = np.array([[1, 0.2, 0, 0.5],
-                      [0.2, 2, 0, 0],
-                      [0, 0, 1, 0],
-                      [0.5, 0, 0, 1]])
-    X = np.random.multivariate_normal(mu, sigma, 10)
-    m.fit(X)
-    print(m.log_likelihood(m.mu_, m.cov_, X))
-    print(np.sum(sp.multivariate_normal.logpdf(X, m.mu_, m.cov_)))
-def test_3():
-    # PDF Multi
-    m = MultivariateGaussian()
-    mu = np.array([0, 0, 4, 0])
-    sigma = np.array([[1, 0.2, 0, 0.5],
-                      [0.2, 2, 0, 0],
-                      [0, 0, 1, 0],
-                      [0.5, 0, 0, 1]])
-    X = np.random.multivariate_normal(mu, sigma, 1000)
-
-    print(m.log_likelihood(np.array([0, 0, 4, 0]), sigma, X))
-    print(np.sum(sp.multivariate_normal.logpdf(X, np.array([0, 0, 4, 0]), sigma)))
-def test_4():
-    m = MultivariateGaussian()
-    mu = np.array([0, 0, 4, 0])
-    sigma = np.array([[1, 0.2, 0, 0.5],
-                      [0.2, 2, 0, 0],
-                      [0, 0, 1, 0],
-                      [0.5, 0, 0, 1]])
-    X = np.random.multivariate_normal(mu, sigma, 1000)
-    print(sigma*mu)
-def test_5():
-    mu = 10
-    var = 1
-    X = np.random.normal(mu, var, 10)
-    u = UnivariateGaussian()
-    u.fit(X)
-    print((u.pdf(X)))
-    print((sp.norm.pdf(X, u.mu_, u.var_)))
-def test_6():
-    m = MultivariateGaussian()
-    mu = np.array([0, 0, 4, 0])
-    sigma = np.array([[1, 0.2, 0, 0.5],
-                      [0.2, 2, 0, 0],
-                      [0, 0, 1, 0],
-                      [0.5, 0, 0, 1]])
-    X = np.random.multivariate_normal(mu, sigma, 1000)
-    m.fit(X)
-    print(np.sum(m.pdf(X)))
-    print(np.sum(sp.multivariate_normal.pdf(X, m.mu_, m.cov_)))
 
 def test_univariate_gaussian():
     # Question 1 - Draw samples and print fitted model
@@ -135,11 +71,5 @@ def test_multivariate_gaussian():
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # test_1()
-    # test_2()
-    # test_3()
-    # test_4()
-    # test_5()
-    # test_6()
     test_univariate_gaussian()
     test_multivariate_gaussian()
