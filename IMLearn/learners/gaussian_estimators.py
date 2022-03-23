@@ -181,7 +181,7 @@ class MultivariateGaussian:
         cov_det, cov_inv = np.linalg.det(self.cov_), np.linalg.inv(self.cov_)
         X_mu = (X - self.mu_)
         d = X.shape[1]
-        return (1 / np.sqrt(cov_det * ((2 * np.pi) ** d))) * np.exp(-0.5 * (X_mu @ cov_inv @ X_mu.T))
+        return (1 / np.sqrt(cov_det * ((2 * np.pi) ** d))) * np.exp(-0.5 * np.sum((X_mu @ cov_inv) * X_mu, axis=1))
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray,

@@ -50,6 +50,25 @@ def test_4():
                       [0.5, 0, 0, 1]])
     X = np.random.multivariate_normal(mu, sigma, 1000)
     print(sigma*mu)
+def test_5():
+    mu = 10
+    var = 1
+    X = np.random.normal(mu, var, 10)
+    u = UnivariateGaussian()
+    u.fit(X)
+    print((u.pdf(X)))
+    print((sp.norm.pdf(X, u.mu_, u.var_)))
+def test_6():
+    m = MultivariateGaussian()
+    mu = np.array([0, 0, 4, 0])
+    sigma = np.array([[1, 0.2, 0, 0.5],
+                      [0.2, 2, 0, 0],
+                      [0, 0, 1, 0],
+                      [0.5, 0, 0, 1]])
+    X = np.random.multivariate_normal(mu, sigma, 1000)
+    m.fit(X)
+    print(np.sum(m.pdf(X)))
+    print(np.sum(sp.multivariate_normal.pdf(X, m.mu_, m.cov_)))
 
 def test_univariate_gaussian():
     # Question 1 - Draw samples and print fitted model
@@ -78,7 +97,7 @@ def test_univariate_gaussian():
     # Question 3 - Plotting Empirical PDF of fitted model
     empiricalPDF = u.pdf(np.sort(X))
     go.Figure([
-        go.Scatter(x=np.sort(X), y=empiricalPDF, mode="lines", line=dict(width=4),
+        go.Scatter(x=np.sort(X), y=empiricalPDF, mode="lines+markers", line=dict(width=4),
                    name=r'$N(\mu, \frac{\sigma^2}{m1})$')],
         layout=go.Layout(barmode='overlay',
                          title=r"$\text{Empirical PDF}$",
@@ -105,20 +124,22 @@ def test_multivariate_gaussian():
     for i in range(200):
         d.append([m.log_likelihood(np.array([f1[i], 0, f3[j], 0]), sigma, X) for j in range(200)])
     go.Figure(data=go.Heatmap(x=f3, y=f1, z=d, name="r$Log-Likelihood$"),
-              layout=go.Layout(title="r$Heatmap - LogLikelihood$", height=800
+              layout=go.Layout(title="r$Heatmap - LogLikelihood$", height=600
                                , xaxis_title="r$F3 - Values$", yaxis_title="r$F1 - Values$")).show()
 
     # Question 6 - Maximum likelihood
     max_f1, max_f3 = np.unravel_index(np.argmax(d), np.array(d).shape)
-    print(f1[max_f1], f3[max_f3])
+    print(f1[max_f1].round(3), f3[max_f3].round(3))
 
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    test_1()
-    test_2()
+    # test_1()
+    # test_2()
     # test_3()
     # test_4()
-    # test_univariate_gaussian()
-    # test_multivariate_gaussian()
+    # test_5()
+    # test_6()
+    test_univariate_gaussian()
+    test_multivariate_gaussian()
