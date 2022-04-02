@@ -3,6 +3,7 @@ from typing import NoReturn
 from ...base import BaseEstimator
 import numpy as np
 from numpy.linalg import pinv
+from ...metrics.loss_functions import mean_square_error
 
 
 class LinearRegression(BaseEstimator):
@@ -88,7 +89,7 @@ class LinearRegression(BaseEstimator):
             Performance under MSE loss function
         """
         y_pred = self.predict(X)
-        return np.mean((y - y_pred) ** 2)
+        return mean_square_error(y, y_pred)
 
     def reshape_samples_with_intercept(self, X):
         """
