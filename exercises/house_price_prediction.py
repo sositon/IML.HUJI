@@ -78,16 +78,13 @@ def filter3(data: pd.DataFrame) -> pd.DataFrame:
     # data.zipcode = (data.zipcode % 200).astype(int)
     zip_dummies = pd.get_dummies(data["zipcode"], prefix="zip", prefix_sep="_")
     del data["zipcode"]
-    # todo check if its ok to drop these columns
-    # del data["lat"]
-    # del data["long"]
 
     data["living_effect"] = data.apply(lambda row: np.sign(row["sqft_living"] - row["sqft_living15"]), axis=1)
     data["lot_effect"] = data.apply(lambda row: np.sign(row["sqft_lot"] - row["sqft_lot15"]), axis=1)
     del data["sqft_living15"]
     del data["sqft_lot15"]
 
-    return pd.concat([data, date_dummies, zip_dummies], axis=1)
+    return pd.concat([data, zip_dummies], axis=1)
 
 
 def load_data(filename: str):
