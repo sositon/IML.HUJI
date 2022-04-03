@@ -50,9 +50,9 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-
+        # todo maybe I should add X.reshape(-1,1) inside this function?
         X = self.reshape_samples_with_intercept(X)
-        self.coefs_ = np.array(pinv(X)@y)
+        self.coefs_ = pinv(X)@y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -95,5 +95,5 @@ class LinearRegression(BaseEstimator):
         """
         add ones column (from the left) if include_intercept = True
         """
-        assert X.shape[:-1] != (), "Dim Error"
+        # X.reshape(-1, 1)
         return np.append(np.ones_like(X), X, axis=1) if self.include_intercept_ else X
