@@ -128,7 +128,6 @@ if __name__ == '__main__':
         "/Users/omersiton/IML.HUJI/datasets/City_Temperature.csv")
 
     # Question 2 - Exploring data for specific country
-    # isr_data = matrix.loc[matrix["Country"] == "Israel"]
     question_2(matrix)
     # Question 3 - Exploring differences between countries
     question_3(matrix)
