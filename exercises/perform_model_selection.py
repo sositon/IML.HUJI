@@ -30,31 +30,30 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     # and split into training- and testing portions
 
     # generate the data samples
-    X = np.linspace(-2, 2, n_samples)
+    X = np.linspace(-1.2, 2, n_samples)
     e = np.random.normal(0, noise, n_samples)
     f = lambda x: (x + 3)*(x + 2)*(x + 1)*(x - 1)*(x - 2)
     y = f(X) + e
     train_portion = 2/3
     X_train, y_train, X_test, y_test = split_train_test(pd.DataFrame(X), pd.Series(y), train_portion)
-
     fig = go.Figure()
     # Add traces
     fig.add_trace(go.Scatter(x=X, y=f(X),
-                             mode='lines',
+                             mode='lines+ markers',
                              name='Noiseless Model',
                              showlegend=True))
-    fig.add_trace(go.Scatter(x=X, y=np.array(y_train),
+    fig.add_trace(go.Scatter(x=np.array(X_train).reshape(-1), y=np.array(y_train),
                              mode='markers',
                              name='Train',
                              showlegend=True))
-    fig.add_trace(go.Scatter(x=X, y=np.array(y_test),
+    fig.add_trace(go.Scatter(x=np.array(X_test).reshape(-1), y=np.array(y_test),
                              mode='markers',
                              name='Test',
                              showlegend=True))
-    # fig.show()
+    fig.show()
 
     # Question 2 - Perform CV for polynomial fitting with degrees 0,1,...,10
-    max_degree = 11
+    max_degree = 10 + 1  # include ten
     k_train_scores, k_valid_scores = [], []
     for k in range(max_degree):
         ts, vs = cross_validate(PolynomialFitting(k), np.array(X_train).reshape(-1), np.array(y_train).reshape(-1), mean_square_error)
