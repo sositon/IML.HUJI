@@ -5,6 +5,15 @@ import numpy as np
 from IMLearn import BaseEstimator
 
 
+def flatten(arr):
+    # list of ndarrays
+    res = []
+    for ls in arr:
+        for val in ls:
+            res.append(val)
+    return np.array(res)
+
+
 def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
                    scoring: Callable[[np.ndarray, np.ndarray, ...], float], cv: int = 5) -> Tuple[float, float]:
     """
@@ -37,4 +46,19 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    raise NotImplementedError()
+    # split X to cv number of folds and the same for y respectively
+    X_split = np.array_split(X, cv)
+    y_split = np.array_split(y, cv)
+    train_scores, validation_scores = [], []
+    for i, X_valid in enumerate(X_split):
+        y_valid = y_split[i]
+        X_train = flatten(X_split[:i] + X_split[i + 1:])
+        y_train = flatten(y_split[:i] + y_split[i + 1:])
+        # fit on the K-1 folds
+        estimator.fit(X_train, y_train)
+        train_scores.append(scoring(estimator.predict(X_train), y_train))
+        validation_scores.append(scoring(estimator.predict(X_valid), y_valid))
+
+    return np.mean(train_scores), np.mean(validation_scores)
+
+
