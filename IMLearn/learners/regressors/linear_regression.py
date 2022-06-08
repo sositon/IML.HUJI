@@ -95,5 +95,5 @@ class LinearRegression(BaseEstimator):
         """
         add ones column (from the left) if include_intercept = True
         """
-        # X.reshape(-1, 1)
-        return np.append(np.ones_like(X), X, axis=1) if self.include_intercept_ else X
+        m = X.shape[0]
+        return np.append(np.ones(m).reshape(m, 1), X, axis=1) if self.include_intercept_ else X
