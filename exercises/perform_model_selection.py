@@ -64,11 +64,11 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=list(range(max_degree)), y=k_train_scores,
-                             mode='lines',
+                             mode='lines+markers',
                              name='Train Scores',
                              showlegend=True))
     fig.add_trace(go.Scatter(x=list(range(max_degree)), y=k_valid_scores,
-                             mode='lines',
+                             mode='lines+markers',
                              name='Validation Scores',
                              showlegend=True))
     fig.update_layout(title="Training and Validation Errors as function of K",
@@ -79,7 +79,7 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     # Question 3 - Using best value of k, fit a k-degree polynomial model and report test error
     best_k = np.argmin(k_valid_scores)
     kpm = PolynomialFitting(k=best_k).fit(X_train, y_train)
-    print(round(mean_square_error(kpm.predict(X_test), y_test), 2))
+    print(f"Test Error with Best K={best_k}: ", round(mean_square_error(kpm.predict(X_test), y_test), 2))
 
 
 def select_regularization_parameter(n_samples: int = 50,
