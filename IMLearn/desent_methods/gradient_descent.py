@@ -3,7 +3,7 @@ from typing import Callable, NoReturn
 import numpy as np
 
 from IMLearn.base import BaseModule, BaseLR
-from .learning_rate import FixedLR
+from IMLearn.desent_methods.learning_rate import FixedLR
 
 OUTPUT_VECTOR_TYPE = ["last", "best", "average"]
 
@@ -39,12 +39,14 @@ class GradientDescent:
         Callable function receives as input any argument relevant for the current GD iteration. Arguments
         are specified in the `GradientDescent.fit` function
     """
+
     def __init__(self,
                  learning_rate: BaseLR = FixedLR(1e-3),
                  tol: float = 1e-5,
                  max_iter: int = 1000,
                  out_type: str = "last",
-                 callback: Callable[[GradientDescent, ...], None] = default_callback):
+                 callback: Callable[
+                     [GradientDescent, ...], None] = default_callback):
         """
         Instantiate a new instance of the GradientDescent class
 
@@ -117,6 +119,35 @@ class GradientDescent:
                 Learning rate used at current iteration
             - delta: float
                 Euclidean norm of w^(t)-w^(t-1)
-
         """
-        raise NotImplementedError()
+        best_weight = f.weights
+        best_weight_score = f.compute_output(X=X, y=y)
+        sum_weights = np.zeros(f.weights.shape)
+        n = 0
+        for t in range(self.max_iter_):
+            n += 1
+            prev_weight = f.weights
+            eta = self.learning_rate_.lr_step(t=t)
+            grad = f.compute_jacobian(X=X, y=y)
+            f.weights = f.weights - eta * grad / np.linalg.norm(grad)
+
+            sum_weights += f.weights
+            current_output = f.compute_output(X=X, y=y)
+            if np.linalg.norm(current_output) < np.linalg.norm(best_weight_score):
+                best_weight = f.weights
+                best_weight_score = current_output
+
+            delta = np.linalg.norm(f.weights - prev_weight, ord=2)
+            if np.linalg.norm(f.weights - prev_weight, ord=2) < self.tol_:
+                break
+            self.callback_(solver=self, weights=f.weights, val=current_output,
+                           grad=grad, t=t, eta=eta, delta=delta, batch_indices=None)
+        if self.out_type_ == "best":
+            return best_weight
+        elif self.out_type_ == "last":
+            return f.weights
+        else:
+            return sum_weights / n
+
+
+

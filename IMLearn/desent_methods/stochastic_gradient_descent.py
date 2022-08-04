@@ -3,8 +3,8 @@ from typing import Callable, Tuple
 import numpy as np
 
 from IMLearn.base import BaseModule, BaseLR
-from .gradient_descent import default_callback
-from .learning_rate import FixedLR
+from IMLearn.desent_methods.gradient_descent import default_callback
+from IMLearn.desent_methods.learning_rate import FixedLR
 
 
 class StochasticGradientDescent:
@@ -58,7 +58,11 @@ class StochasticGradientDescent:
             Callable function receives as input any argument relevant for the current GD iteration. Arguments
             are specified in the `GradientDescent.fit` function
         """
-        raise NotImplementedError()
+        self._learning_rate = learning_rate
+        self._tol = tol
+        self._max_iter = max_iter
+        self._callback = callback
+        self._batch_size = batch_size
 
     def fit(self, f: BaseModule, X: np.ndarray, y: np.ndarray):
         """
@@ -107,7 +111,21 @@ class StochasticGradientDescent:
             - batch_indices: np.ndarray of shape (n_batch,)
                 Sample indices used in current SGD iteration
         """
-        raise NotImplementedError()
+        if f.weights is None:
+            f.weights = np.random.normal(size=X.shape[1])
+        w_sum = 0
+        for t in range(self._max_iter):
+            w_t = f.weights
+            batch_ind = np.random.choice(len(X), self._batch_size, replace=False)
+            val, grad, eta = self._partial_fit(f, X[batch_ind], y[batch_ind], t)
+            w_t_1 = f.weights
+            delta = np.linalg.norm(w_t_1 - w_t)
+            self._callback(solver=self, weights=w_t_1, val=val, grad=grad, t=t,
+                           eta=eta, delta=delta, batch_indices=batch_ind)
+            w_sum += w_t_1
+            if delta < self._tol:
+                return w_sum / t
+        return w_sum / self._max_iter
 
     def _partial_fit(self, f: BaseModule, X: np.ndarray, y: np.ndarray, t: int) -> Tuple[np.ndarray, np.ndarray, float]:
         """
@@ -138,4 +156,13 @@ class StochasticGradientDescent:
         eta: float
             learning rate used at current iteration
         """
-        raise NotImplementedError()
+        w_t = f.weights
+        grad = f.compute_jacobian(X, y)
+        # eta = self._learning_rate.lr_step(t)
+        eta = self._learning_rate.lr_step()
+        w_t_1 = w_t - eta * grad
+        f.weights = w_t_1
+        val = f.compute_output(X, y)
+        return val, f.compute_jacobian(X, y), eta
+
+

@@ -104,20 +104,95 @@ if __name__ == '__main__':
     go.Figure(data=[go.Scatter(x=train_X[:, 0], y=train_X[:, 1], mode='markers',
                                marker=dict(color=train_y, colorscale=custom, line=dict(color="black", width=1)))],
               layout=go.Layout(title=r"$\text{Train Data}$", xaxis=dict(title=r"$x_1$"), yaxis=dict(title=r"$x_2$"),
-                               width=400, height=400))\
-        .write_image(f"../figures/nonlinear_data.png")
+                               width=400, height=400)).write_image(f"../figures/nonlinear_data.png")
 
     # ---------------------------------------------------------------------------------------------#
     # Question 1: Fitting simple network with two hidden layers                                    #
     # ---------------------------------------------------------------------------------------------#
-    raise NotImplementedError()
+    layer1 = FullyConnectedLayer(input_dim=n_features, output_dim=16, activation=ReLU(), include_intercept=True)
+    layer2 = FullyConnectedLayer(input_dim=16, output_dim=16, activation=ReLU(), include_intercept=True)
+    layer3 = FullyConnectedLayer(input_dim=16, output_dim=n_classes, activation=None, include_intercept=True)
+    loss_func = CrossEntropyLoss()
+    network = NeuralNetwork([layer1, layer2, layer3], loss_func,
+                            solver=GradientDescent(learning_rate=FixedLR(0.1), max_iter=5000))
+    network.fit(train_X, train_y)
+    plot_decision_boundary(network, lims=lims, X=train_X, y=train_y,
+                           title="decision_boundary for simple network with two hidden layers").show()
+
+    print("accuracy for the test set = ", accuracy(test_y, network.predict(test_X)))
 
     # ---------------------------------------------------------------------------------------------#
     # Question 2: Fitting a network with no hidden layers                                          #
     # ---------------------------------------------------------------------------------------------#
-    raise NotImplementedError()
+    loss_func = CrossEntropyLoss()
+    out_layer = FullyConnectedLayer(input_dim=n_features, output_dim=n_classes, activation=None, include_intercept=True)
+    network2 = NeuralNetwork([out_layer], loss_func,
+                            solver=GradientDescent(learning_rate=FixedLR(0.1), max_iter=5000))
+    network2.fit(train_X, train_y)
+    plot_decision_boundary(network2, lims=lims, X=train_X, y=train_y,
+                                 title="decision boundary for simple network with no hidden layers").show()
+    print("accuracy for the test set = ", accuracy(test_y, network2.predict(test_X)))
 
     # ---------------------------------------------------------------------------------------------#
     # Question 3+4: Plotting network convergence process                                           #
     # ---------------------------------------------------------------------------------------------#
-    raise NotImplementedError()
+    convergence_val = []
+    weights_val = []
+    grad_val = []
+
+    def convergence_callback(solver, weights, val, grad, t, eta, delta, batch_indices):
+        if t % 100 == 0:
+            weights_val.append(weights)
+        grad_val.append(np.linalg.norm(grad))
+        convergence_val.append(val)
+        return
+
+
+    layer1 = FullyConnectedLayer(input_dim=train_X.shape[1], output_dim=16, activation=ReLU())
+    layer2 = FullyConnectedLayer(input_dim=16, output_dim=16, activation=ReLU())
+    layer3 = FullyConnectedLayer(input_dim=16, output_dim=n_classes, activation=None, include_intercept=True)
+    loss_func = CrossEntropyLoss()
+    network = NeuralNetwork([layer1, layer2, layer3], loss_func,
+                            solver=GradientDescent(learning_rate=FixedLR(0.1), max_iter=5000,
+                                                   callback=convergence_callback))
+
+    network.fit(train_X, train_y)
+    fig1 = go.Figure([go.Scatter(x=np.arange(1, len(convergence_val)), y=convergence_val,
+                                 mode='markers + lines', name="Losses"),
+                      go.Scatter(x=np.arange(1, len(grad_val)), y=grad_val,
+                                 mode='markers + lines', name="Gradient Norm")])
+
+    fig1.update_layout(title="loss values as a function of iteration number",
+                       xaxis_title="number of iteration",
+                       yaxis_title="loss values")
+
+    fig1.show()
+
+    animate_decision_boundary(network, weights_val, lims, X=train_X, y=train_y, save_name=f"../figures/anima3.gif")
+
+    # question 4
+    convergence_val = []
+    weights_val = []
+    grad_val = []
+
+    first_layer = FullyConnectedLayer(input_dim=train_X.shape[1], output_dim=6, activation=ReLU())
+    second_layer = FullyConnectedLayer(input_dim=6, output_dim=6, activation=ReLU())
+    final_layer = FullyConnectedLayer(input_dim=6, output_dim=n_classes, activation=None, include_intercept=True)
+    loss_func = CrossEntropyLoss()
+    network = NeuralNetwork([first_layer, second_layer, final_layer], loss_func,
+                            solver=GradientDescent(learning_rate=FixedLR(0.1), max_iter=5000,
+                                                   callback=convergence_callback))
+
+    network.fit(train_X, train_y)
+    fig2 = go.Figure([go.Scatter(x=np.arange(1, len(convergence_val)), y=convergence_val,
+                                 mode='markers + lines', name="Losses"),
+                      go.Scatter(x=np.arange(1, len(grad_val)), y=grad_val,
+                                 mode='markers + lines', name="Gradient Norm")])
+
+    fig2.update_layout(title="loss values as a function of iteration number",
+                       xaxis_title="number of iteration",
+                       yaxis_title="loss values")
+
+    fig2.show()
+
+    animate_decision_boundary(network, weights_val, lims, X=train_X, y=train_y, save_name=f"../figures/anima4.gif")

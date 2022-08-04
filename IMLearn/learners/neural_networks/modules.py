@@ -48,7 +48,15 @@ class FullyConnectedLayer(BaseModule):
         Weights are randomly initialized following N(0, 1/input_dim)
         """
         super().__init__()
-        raise NotImplementedError()
+        if include_intercept is False:
+            self.weights = np.random.normal(0, 1/input_dim, size=(input_dim, output_dim))
+
+        else:
+            self.weights = np.random.normal(0, 1/input_dim, size=(input_dim+1, output_dim))
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.activation = activation
+        self.include_intercept = include_intercept
 
     def compute_output(self, X: np.ndarray, **kwargs) -> np.ndarray:
         """
@@ -65,7 +73,11 @@ class FullyConnectedLayer(BaseModule):
         output: ndarray of shape (n_samples, output_dim)
             Value of function at point self.weights
         """
-        raise NotImplementedError()
+        if self.include_intercept:
+            X = np.insert(X, 0, np.ones(X.shape[0]), axis=1)
+        if self.activation:
+            return self.activation.compute_output(X=(X @ self.weights))
+        return X @ self.weights
 
     def compute_jacobian(self, X: np.ndarray, **kwargs) -> np.ndarray:
         """
@@ -81,7 +93,7 @@ class FullyConnectedLayer(BaseModule):
         output: ndarray of shape (input_dim, n_samples)
             Derivative with respect to self.weights at point self.weights
         """
-        raise NotImplementedError()
+        return self.activation(X.T) * self.activation(X.T)
 
 
 class ReLU(BaseModule):
@@ -103,7 +115,7 @@ class ReLU(BaseModule):
         output: ndarray of shape (n_samples, input_dim)
             Data after performing the ReLU activation function
         """
-        raise NotImplementedError()
+        return np.where(X < 0, 0, X)
 
     def compute_jacobian(self, X: np.ndarray, **kwargs) -> np.ndarray:
         """
@@ -116,10 +128,10 @@ class ReLU(BaseModule):
 
         Returns:
         -------
-        output: ndarray of shape (n_samples,)
+        output: ndarray of shape (n_samples, input_dim)
             Element-wise derivative of ReLU with respect to given data
         """
-        raise NotImplementedError()
+        return np.sign(self.compute_output(X))
 
 
 class CrossEntropyLoss(BaseModule):
@@ -145,7 +157,9 @@ class CrossEntropyLoss(BaseModule):
         output: ndarray of shape (n_samples,)
             cross-entropy loss value of given X and y
         """
-        raise NotImplementedError()
+        m = y.shape[0]
+        q = softmax(X)
+        return -np.log(q[range(m), y])
 
     def compute_jacobian(self, X: np.ndarray, y: np.ndarray, **kwargs) -> np.ndarray:
         """
@@ -164,5 +178,8 @@ class CrossEntropyLoss(BaseModule):
         output: ndarray of shape (n_samples, input_dim)
             derivative of cross-entropy loss with respect to given input
         """
-        raise NotImplementedError()
+        m = y.shape[0]
+        grad = softmax(X)
+        grad[range(m), y] -= 1
+        return grad
 
